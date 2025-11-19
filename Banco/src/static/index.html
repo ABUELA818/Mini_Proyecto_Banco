@@ -6,7 +6,10 @@
     <title>ATM Concurrente</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /*  Diseño más compacto, elegante y moderno con gradientes y glassmorphism */
+        /*
+         * Mi intento de un diseño más moderno y cool.
+         * Usando gradientes y un toque de glassmorphism.
+         */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         
         body {
@@ -20,6 +23,7 @@
         }
         
         .glass-card {
+            /* ¡Efecto de cristal que me encanta! */
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -28,6 +32,7 @@
         .saldo-display {
             font-size: 2rem;
             font-weight: 800;
+            /* Gradiente para que el saldo se vea potente */
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -38,10 +43,12 @@
         .log-box {
             height: 200px;
             overflow-y: auto;
+            /* Fondo sutil para el log */
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
             border: 1px solid rgba(102, 126, 234, 0.2);
         }
         
+        /* Personalización de la scrollbar para que quede bien con el diseño */
         .log-box::-webkit-scrollbar {
             width: 6px;
         }
@@ -66,6 +73,7 @@
         .log-error { color: #ef4444; }
         .log-info { color: #667eea; }
         
+        /* Estilos base para los botones principales */
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             transition: all 0.3s ease;
@@ -73,6 +81,7 @@
         }
         
         .btn-primary:hover {
+            /* Un pequeño efecto al pasar el mouse */
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
@@ -100,6 +109,7 @@
         input:focus {
             outline: none;
             border-color: #667eea;
+            /* Un anillo de enfoque suave */
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
     </style>
@@ -176,24 +186,24 @@
 
 
     <script>
-        // La URL de tu servidor Flask (Asegúrate de que sea tu IP si estás probando desde otros dispositivos)
-        // Como Flask se está ejecutando en el puerto 5001, lo usamos aquí.
+        // La URL de mi servidor Flask. ¡OJO! Si estás en otra PC, usa tu IP, no 'localhost'.
+        // Flask está en el puerto 5001, así que lo pongo aquí.
         const API_BASE_URL = window.location.protocol + '//' + window.location.hostname + ':5001';
         
-        // --- UTILIDADES DE INTERFAZ (UI) ---
+        // --- COSAS DE LA INTERFAZ (UI) ---
 
-        /** Muestra mensajes en el área de Log. */
+        // Función para mandar mensajes al log. Es útil para ver qué está pasando.
         function logMessage(message, type = 'info') {
             const logList = document.getElementById('log-list');
             const item = document.createElement('div');
             item.className = `log-item log-${type}`;
             item.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
             
-            // Agregar al inicio para ver los más recientes primero
+            // Los logs más nuevos van arriba para no hacer tanto scroll.
             logList.prepend(item); 
         }
 
-        /** Actualiza el saldo en la interfaz. */
+        // Simplemente actualiza el número del saldo y le da formato de moneda.
         function updateSaldo(saldo) {
             const saldoDisplay = document.getElementById('saldo-display');
             // Formatear el saldo a moneda (ej: $1,000.00)
@@ -204,42 +214,42 @@
             }).format(saldo);
         }
         
-        /** Controla la visibilidad de las pantallas de Login y Transacción. */
+        // Muestra u oculta los paneles de Login y Transacción.
         function toggleScreens(isLoggedIn) {
             document.getElementById('login-panel').classList.toggle('hidden', isLoggedIn);
             document.getElementById('transaction-panel').classList.toggle('hidden', !isLoggedIn);
             if (isLoggedIn) {
                 document.getElementById('cajero-name').textContent = sessionStorage.getItem('cajero_nombre') || 'Cajero Desconocido';
                 consultarSaldo();
-                logMessage('Sesión iniciada. Listo para transacciones concurrentes.', 'info');
+                logMessage('¡Sesión iniciada! A probar la concurrencia.', 'info');
             } else {
                 updateSaldo(0);
-                logMessage('Sesión cerrada. Inicie sesión para continuar.', 'info');
+                logMessage('Sesión cerrada. Toca volver a entrar.', 'info');
             }
         }
 
-        // --- LÓGICA DE API Y TRANSACCIONES ---
+        // --- LÓGICA CON EL SERVIDOR (API) ---
 
-        /** Verifica el estado de la sesión al cargar la página. */
+        // Reviso si ya estoy logueado al cargar la página.
         async function checkStatus() {
             const cajeroId = sessionStorage.getItem('cajero_id');
             const cajeroNombre = sessionStorage.getItem('cajero_nombre');
 
+            // Si tengo datos guardados, asumo que sí.
             if (cajeroId && cajeroNombre) {
-                // Si hay datos en la sesión, asumimos que estamos logueados
                 toggleScreens(true);
             } else {
                 toggleScreens(false);
             }
         }
 
-        /** Maneja el inicio de sesión. */
+        // Intentar loguear al cajero con el ID y PIN.
         async function handleLogin() {
             const cajero_id = document.getElementById('cajero_id').value;
             const pin = document.getElementById('pin').value;
             
             if (!cajero_id || !pin) {
-                logMessage('Por favor, ingrese el ID y el PIN.', 'error');
+                logMessage('Falta el ID o el PIN, ¡no seas olvidadizo!', 'error');
                 return;
             }
 
@@ -253,7 +263,7 @@
                 const data = await response.json();
 
                 if (data.status === 'success') {
-                    // Guardar los datos en la sessionStorage para persistir en la pestaña/dispositivo
+                    // Guardo los datos del cajero en el navegador (sessionStorage)
                     sessionStorage.setItem('cajero_id', cajero_id);
                     sessionStorage.setItem('cajero_nombre', data.cajero);
                     toggleScreens(true);
@@ -261,23 +271,23 @@
                     logMessage(`Error de Login: ${data.message}`, 'error');
                 }
             } catch (error) {
-                logMessage(`Error de conexión con el servidor: ${error.message}. Asegúrese de que Flask está corriendo en el puerto 5001.`, 'error');
+                logMessage(`¡No puedo conectar con el servidor! Error: ${error.message}. ¿Flask está corriendo en el 5001?`, 'error');
             }
         }
         
-        /** Maneja el cierre de sesión. */
+        // Función para cerrar la sesión (borra los datos guardados).
         async function handleLogout() {
             await fetch(`${API_BASE_URL}/logout`, { method: 'POST' });
             sessionStorage.removeItem('cajero_id');
             sessionStorage.removeItem('cajero_nombre');
             toggleScreens(false);
-            // Opcional: limpiar el formulario de login si quieres
+            // Ya que estamos, limpio el formulario para que sea más fácil volver a entrar
             document.getElementById('cajero_id').value = '';
             document.getElementById('pin').value = '';
         }
 
 
-        /** Consulta el saldo actual de la cuenta. */
+        // Pedir el saldo actual al servidor.
         async function consultarSaldo() {
             try {
                 const response = await fetch(`${API_BASE_URL}/saldo`);
@@ -287,25 +297,26 @@
                     updateSaldo(data.saldo);
                     return data.saldo;
                 } else {
-                    logMessage(`Error al consultar saldo: ${data.message}`, 'error');
+                    logMessage(`Hubo un problema al pedir el saldo: ${data.message}`, 'error');
                 }
             } catch (error) {
-                logMessage('Error de conexión al consultar saldo.', 'error');
+                logMessage('Error de conexión al consultar saldo. ¿El servidor está bien?', 'error');
             }
         }
 
-        /** Maneja las peticiones de Depósito y Retiro. */
+        // La función clave: Depósito o Retiro.
         async function handleTransaction(type) {
             const montoInput = document.getElementById('monto');
-            const monto = parseInt(montoInput.value);
+            // Aseguro que sea un número entero, si no, es 0.
+            const monto = parseInt(montoInput.value); 
             const cajeroNombre = sessionStorage.getItem('cajero_nombre') || 'Cajero Desconocido';
             
             if (isNaN(monto) || monto <= 0) {
-                logMessage('Monto inválido. Ingrese un valor positivo.', 'error');
+                logMessage('¡El monto no es válido! Debe ser un número positivo.', 'error');
                 return;
             }
 
-            // Mensaje de inicio de la transacción concurrente
+            // Aviso que la transacción va a empezar.
             logMessage(`[${cajeroNombre}] Intentando ${type.toUpperCase()} $${monto}...`, 'info');
 
             try {
@@ -313,7 +324,7 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        // Flask usa cookies de sesión, no necesitamos pasar el token manualmente
+                        // El token no es necesario, Flask usa cookies de sesión.
                     },
                     body: JSON.stringify({ monto })
                 });
@@ -322,19 +333,19 @@
 
                 if (data.status === 'success') {
                     updateSaldo(data.saldo_final);
-                    logMessage(`[${data.cajero_nombre}] ${type.toUpperCase()} $${monto} - Éxito. Nuevo Saldo: $${data.saldo_final}`, 'log-success');
+                    logMessage(`[${data.cajero_nombre}] ${type.toUpperCase()} $${monto} - ¡LISTO! Saldo Final: $${data.saldo_final}`, 'log-success');
                 } else if (data.status === 'auth_error') {
-                    logMessage(`[${cajeroNombre}] Fallo de autenticación. Cerrando sesión.`, 'error');
+                    logMessage(`[${cajeroNombre}] ¡Fallo de autenticación! Cerrando sesión por seguridad.`, 'error');
                     handleLogout();
                 } else {
-                    logMessage(`[${cajeroNombre}] ${type.toUpperCase()} $${monto} - ERROR: ${data.message}`, 'log-error');
+                    logMessage(`[${cajeroNombre}] ${type.toUpperCase()} $${monto} - ¡OH NO! ERROR: ${data.message}`, 'log-error');
                 }
             } catch (error) {
-                logMessage(`Error de red durante la transacción: ${error.message}`, 'error');
+                logMessage(`Error de red durante la transacción: ${error.message}. Revisa la conexión.`, 'error');
             }
         }
 
-        // Iniciar la verificación de estado al cargar la página
+        // Empezar a revisar el estado cuando cargue la página
         window.onload = checkStatus;
 
     </script>
