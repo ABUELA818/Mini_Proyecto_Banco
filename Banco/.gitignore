@@ -1,0 +1,21 @@
+Entornos virtuales de Python (no deben subirse)
+
+.venv/
+venv/
+env/
+
+Archivos de caché y compilación de Python
+
+pycache/
+*.pyc
+
+Archivos de sesión de Flask
+
+Estos son temporales y sensibles, no deben ir a GitHub.
+
+.flaskenv
+instance/
+
+Archivos de registro y depuración
+
+*.log
